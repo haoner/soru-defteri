@@ -152,6 +152,16 @@
 				transform: translateY(-2px);
 			}
 
+			/* YENİ: Seçilen dosya adını göstermek için stil */
+			.file-name-text {
+				margin-top: 8px;
+				font-size: 0.9rem;
+				color: #495057;
+				text-align: center;
+				word-break: break-all;
+				min-height: 1.2em; /* Boşken kaymayı önlemek için */
+			}
+
 			.add-btn {
 				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 				color: white;
@@ -183,7 +193,6 @@
 				align-items: center;
 				gap: 8px;
 			}
-			/* ACCESSIBILITY: Select için etiketlere for ataması yapıldı */
 			.filter-group label {
 				font-weight: normal;
 				color: #495057;
@@ -225,7 +234,6 @@
 			}
 
 			.stat-label {
-				/* ACCESSIBILITY: Kontrast artırıldı */
 				color: #495057;
 				font-size: 0.9rem;
 				margin-top: 5px;
@@ -272,20 +280,19 @@
 				font-weight: 600;
 			}
 
-			/* ACCESSIBILITY: Kontrast oranları iyileştirildi */
 			.status-beklemede {
 				background: #ffebee;
-				color: #b71c1c; /* Daha koyu kırmızı */
+				color: #b71c1c;
 			}
 
 			.status-cozuldu {
 				background: #e8f5e8;
-				color: #1b5e20; /* Daha koyu yeşil */
+				color: #1b5e20;
 			}
 
 			.status-yarim {
 				background: #fff3e0;
-				color: #e65100; /* Daha koyu turuncu */
+				color: #e65100;
 			}
 
 			.question-image {
@@ -508,8 +515,11 @@
 							<label>Soru Görseli</label>
 							<div class="file-upload">
 								<input type="file" id="soru-file" accept="image/*" />
-								<label for="soru-file" class="file-upload-btn"> 📷 Görsel Seç </label>
+								<!-- YENİ: Buton etiketine ID eklendi -->
+								<label for="soru-file" class="file-upload-btn" id="file-upload-label"> 📷 Görsel Seç </label>
 							</div>
+							<!-- YENİ: Seçilen dosya adının gösterileceği alan -->
+							<span id="file-name-display" class="file-name-text"></span>
 						</div>
 						<div class="form-group">
 							<label for="notlar">Notlar (İsteğe bağlı)</label>
@@ -520,7 +530,6 @@
 						<button class="add-btn" onclick="addQuestion()" style="flex: 1">➕ Soru Ekle</button>
 						<button class="add-btn" onclick="exportData()" style="background: #28a745; flex-basis: 150px">📥 Dışa Aktar</button>
 						<input type="file" id="import-file" accept=".json" style="display: none" onchange="importData()" />
-						<!-- ACCESSIBILITY: Kontrast artırıldı -->
 						<button class="add-btn" onclick="document.getElementById('import-file').click()" style="background: #ffc107; color: #212529; flex-basis: 150px">📤 İçe Aktar</button>
 						<button class="add-btn" onclick="exportToPDF(event)" style="background: #dc3545; flex-basis: 150px">📄 PDF Aktar</button>
 					</div>
@@ -549,7 +558,6 @@
 				<!-- Filtreler -->
 				<div class="filters">
 					<div class="filter-group">
-						<!-- ACCESSIBILITY: Label için for eklendi -->
 						<label for="filter-sinav">Sınav:</label>
 						<select id="filter-sinav" onchange="filterQuestions()">
 							<option value="">Tümü</option>
@@ -560,7 +568,6 @@
 						</select>
 					</div>
 					<div class="filter-group">
-						<!-- ACCESSIBILITY: Label için for eklendi -->
 						<label for="filter-brans">Branş:</label>
 						<select id="filter-brans" onchange="filterQuestions()">
 							<option value="">Tümü</option>
@@ -574,7 +581,6 @@
 						</select>
 					</div>
 					<div class="filter-group">
-						<!-- ACCESSIBILITY: Label için for eklendi -->
 						<label for="filter-durum">Durum:</label>
 						<select id="filter-durum" onchange="filterQuestions()">
 							<option value="">Tümü</option>
@@ -660,7 +666,12 @@
 				document.getElementById('konu').value = '';
 				document.getElementById('durum').value = 'Beklemede';
 				document.getElementById('notlar').value = '';
-				document.getElementById('soru-file').value = '';
+				const fileInput = document.getElementById('soru-file');
+				fileInput.value = ''; // Reset file input
+
+				// YENİ: Dosya adı göstergesini ve buton metnini sıfırla
+				document.getElementById('file-name-display').textContent = '';
+				document.getElementById('file-upload-label').textContent = '📷 Görsel Seç';
 			}
 
 			function displayQuestions(questionList) {
@@ -773,6 +784,22 @@
 			document.addEventListener('DOMContentLoaded', function () {
 				filterQuestions();
 				updateStats();
+
+				// YENİ: Dosya seçildiğinde geri bildirim vermek için event listener
+				const fileInput = document.getElementById('soru-file');
+				const fileLabel = document.getElementById('file-upload-label');
+				const fileNameDisplay = document.getElementById('file-name-display');
+
+				fileInput.addEventListener('change', function () {
+					if (fileInput.files.length > 0) {
+						const fileName = fileInput.files[0].name;
+						fileNameDisplay.textContent = `📁 Dosya: ${fileName}`;
+						fileLabel.textContent = '📷 Görsel Değiştir';
+					} else {
+						fileNameDisplay.textContent = '';
+						fileLabel.textContent = '📷 Görsel Seç';
+					}
+				});
 			});
 
 			document.addEventListener('keydown', function (e) {
@@ -838,7 +865,6 @@
 			}
 
 			async function exportToPDF(event) {
-				// Check if PDF libraries are loaded
 				if (typeof jspdf === 'undefined' || typeof html2canvas === 'undefined') {
 					alert('PDF oluşturma kütüphaneleri henüz yüklenmedi. Lütfen bir kaç saniye bekleyip tekrar deneyin.');
 					return;
