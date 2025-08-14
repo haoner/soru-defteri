@@ -3,11 +3,11 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!-- SEO: Meta açıklama eklendi -->
+		<meta name="description" content="Soru Defteri ile çözemediğiniz TYT, AYT, MSÜ ve DGS sorularını kolayca takip edin, fotoğrafını çekip kaydedin ve gelişiminizi izleyin." />
 		<title>Soru Defteri</title>
 		<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>" />
-		<!-- PDF Oluşturma Kütüphaneleri -->
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+		<!-- Kütüphaneler performans için body sonuna taşındı -->
 		<style>
 			* {
 				margin: 0;
@@ -60,7 +60,8 @@
 
 			.header p {
 				font-size: 1.1rem;
-				opacity: 0.9;
+				/* ACCESSIBILITY: Opaklık kaldırıldı, kontrast artırıldı */
+				opacity: 1;
 				position: relative;
 				z-index: 1;
 			}
@@ -182,6 +183,11 @@
 				align-items: center;
 				gap: 8px;
 			}
+			/* ACCESSIBILITY: Select için etiketlere for ataması yapıldı */
+			.filter-group label {
+				font-weight: normal;
+				color: #495057;
+			}
 
 			.filter-group select {
 				padding: 8px 12px;
@@ -219,7 +225,8 @@
 			}
 
 			.stat-label {
-				color: #6c757d;
+				/* ACCESSIBILITY: Kontrast artırıldı */
+				color: #495057;
 				font-size: 0.9rem;
 				margin-top: 5px;
 			}
@@ -265,19 +272,20 @@
 				font-weight: 600;
 			}
 
+			/* ACCESSIBILITY: Kontrast oranları iyileştirildi */
 			.status-beklemede {
 				background: #ffebee;
-				color: #c62828;
+				color: #b71c1c; /* Daha koyu kırmızı */
 			}
 
 			.status-cozuldu {
 				background: #e8f5e8;
-				color: #2e7d32;
+				color: #1b5e20; /* Daha koyu yeşil */
 			}
 
 			.status-yarim {
 				background: #fff3e0;
-				color: #ef6c00;
+				color: #e65100; /* Daha koyu turuncu */
 			}
 
 			.question-image {
@@ -353,7 +361,6 @@
 				background: #c82333;
 			}
 
-			/* --- GÜNCELLEME: Modal Görsel Sığdırma Düzeltmesi --- */
 			.modal {
 				display: none;
 				position: fixed;
@@ -361,12 +368,12 @@
 				left: 0;
 				width: 100%;
 				height: 100%;
-				background: rgba(0, 0, 0, 0.85); /* Arka planı hafifçe koyulaştırdık */
+				background: rgba(0, 0, 0, 0.85);
 				z-index: 1000;
 				align-items: center;
 				justify-content: center;
-				padding: 20px; /* Ekran kenarlarından güvenli boşluk */
-				box-sizing: border-box; /* Padding'in genişliği etkilememesi için */
+				padding: 20px;
+				box-sizing: border-box;
 			}
 
 			.modal.show {
@@ -374,20 +381,18 @@
 			}
 
 			.modal-content {
-				/* Konteynerin maksimum boyutunu ekranın %95'i olarak ayarlar */
 				max-width: 95vw;
 				max-height: 95vh;
 				position: relative;
-				display: flex; /* İçindeki resmi ortalamak için */
+				display: flex;
 				align-items: center;
 				justify-content: center;
 			}
 
 			.modal-content img {
-				/* Bu 4 kural, resmin konteynere sığmasını sağlar */
-				max-width: 100%; /* Resmin genişliği, konteyner genişliğini aşamaz */
-				max-height: 100%; /* Resmin yüksekliği, konteyner yüksekliğini aşamaz */
-				object-fit: contain; /* Resmin en-boy oranını korur ve tamamını gösterir */
+				max-width: 100%;
+				max-height: 100%;
+				object-fit: contain;
 				border-radius: 10px;
 			}
 
@@ -408,7 +413,6 @@
 				justify-content: center;
 				box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 			}
-			/* --- Bitiş: Modal Düzeltmesi --- */
 
 			.empty-state {
 				text-align: center;
@@ -460,7 +464,7 @@
 					<h2 style="margin-bottom: 20px; color: #495057">📝 Yeni Soru Ekle</h2>
 					<div class="form-grid">
 						<div class="form-group">
-							<label>Sınav Oturumu</label>
+							<label for="sinav">Sınav Oturumu</label>
 							<select id="sinav">
 								<option value="">Seçiniz</option>
 								<option value="TYT">TYT</option>
@@ -470,7 +474,7 @@
 							</select>
 						</div>
 						<div class="form-group">
-							<label>Branş</label>
+							<label for="brans">Branş</label>
 							<select id="brans">
 								<option value="">Seçiniz</option>
 								<option value="Matematik">Matematik</option>
@@ -487,11 +491,11 @@
 							</select>
 						</div>
 						<div class="form-group">
-							<label>Konu</label>
+							<label for="konu">Konu</label>
 							<input type="text" id="konu" placeholder="Örn: Fonksiyonlar, Türev..." />
 						</div>
 						<div class="form-group">
-							<label>Durum</label>
+							<label for="durum">Durum</label>
 							<select id="durum">
 								<option value="Beklemede">Beklemede</option>
 								<option value="Yarım Çözüldü">Yarım Çözüldü</option>
@@ -508,7 +512,7 @@
 							</div>
 						</div>
 						<div class="form-group">
-							<label>Notlar (İsteğe bağlı)</label>
+							<label for="notlar">Notlar (İsteğe bağlı)</label>
 							<textarea id="notlar" placeholder="Bu soruyla ilgili notlarınız..." rows="3"></textarea>
 						</div>
 					</div>
@@ -516,7 +520,8 @@
 						<button class="add-btn" onclick="addQuestion()" style="flex: 1">➕ Soru Ekle</button>
 						<button class="add-btn" onclick="exportData()" style="background: #28a745; flex-basis: 150px">📥 Dışa Aktar</button>
 						<input type="file" id="import-file" accept=".json" style="display: none" onchange="importData()" />
-						<button class="add-btn" onclick="document.getElementById('import-file').click()" style="background: #ffc107; color: #333; flex-basis: 150px">📤 İçe Aktar</button>
+						<!-- ACCESSIBILITY: Kontrast artırıldı -->
+						<button class="add-btn" onclick="document.getElementById('import-file').click()" style="background: #ffc107; color: #212529; flex-basis: 150px">📤 İçe Aktar</button>
 						<button class="add-btn" onclick="exportToPDF(event)" style="background: #dc3545; flex-basis: 150px">📄 PDF Aktar</button>
 					</div>
 				</div>
@@ -544,7 +549,8 @@
 				<!-- Filtreler -->
 				<div class="filters">
 					<div class="filter-group">
-						<label>Sınav:</label>
+						<!-- ACCESSIBILITY: Label için for eklendi -->
+						<label for="filter-sinav">Sınav:</label>
 						<select id="filter-sinav" onchange="filterQuestions()">
 							<option value="">Tümü</option>
 							<option value="TYT">TYT</option>
@@ -554,7 +560,8 @@
 						</select>
 					</div>
 					<div class="filter-group">
-						<label>Branş:</label>
+						<!-- ACCESSIBILITY: Label için for eklendi -->
+						<label for="filter-brans">Branş:</label>
 						<select id="filter-brans" onchange="filterQuestions()">
 							<option value="">Tümü</option>
 							<option value="Matematik">Matematik</option>
@@ -567,7 +574,8 @@
 						</select>
 					</div>
 					<div class="filter-group">
-						<label>Durum:</label>
+						<!-- ACCESSIBILITY: Label için for eklendi -->
+						<label for="filter-durum">Durum:</label>
 						<select id="filter-durum" onchange="filterQuestions()">
 							<option value="">Tümü</option>
 							<option value="Beklemede">Beklemede</option>
@@ -591,6 +599,10 @@
 				<img id="modal-image" src="" alt="Soru Görseli" />
 			</div>
 		</div>
+
+		<!-- PERFORMANCE: Render-blocking script'ler body sonuna taşındı ve 'defer' eklendi -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 
 		<script>
 			let questions = JSON.parse(localStorage.getItem('yksQuestions')) || [];
@@ -825,8 +837,13 @@
 				reader.readAsText(file);
 			}
 
-			// --- GÜNCELLEME: PDF Dosya Boyutunu Düşürme Optimizasyonu ---
 			async function exportToPDF(event) {
+				// Check if PDF libraries are loaded
+				if (typeof jspdf === 'undefined' || typeof html2canvas === 'undefined') {
+					alert('PDF oluşturma kütüphaneleri henüz yüklenmedi. Lütfen bir kaç saniye bekleyip tekrar deneyin.');
+					return;
+				}
+
 				const sinavFilter = document.getElementById('filter-sinav').value;
 				const bransFilter = document.getElementById('filter-brans').value;
 				const durumFilter = document.getElementById('filter-durum').value;
@@ -896,20 +913,13 @@
 						printCard.innerHTML = cardHTML;
 						document.body.appendChild(printCard);
 
-						// DEĞİŞİKLİK 1: Yüksek çözünürlük ölçeğini (scale) kaldırıyoruz.
-						// Bu tek başına dosya boyutunu 4 kat düşürür.
 						const canvas = await html2canvas(printCard, { useCORS: true });
-
-						// DEĞİŞİKLİK 2: Canvas'ı PNG yerine daha verimli olan JPEG'e çeviriyoruz.
-						// 0.7 değeri kaliteyi temsil eder (0 ile 1 arasında). %70 kalite, boyut ve görünüm için iyi bir dengedir.
 						const imgData = canvas.toDataURL('image/jpeg', 0.7);
 
 						const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
 						const finalHeight = imgHeight > pageHeight - margin * 2 ? pageHeight - margin * 2 : imgHeight;
 
-						// DEĞİŞİKLİK 3: addImage fonksiyonuna formatı ve sıkıştırma türünü belirtiyoruz.
-						// 'FAST' komutu, iyi bir sıkıştırma sağlar.
 						pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, finalHeight, undefined, 'FAST');
 
 						document.body.removeChild(printCard);
