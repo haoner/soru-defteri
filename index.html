@@ -657,18 +657,18 @@
 				if (questionList.length === 0) {
 					if (questions.length > 0) {
 						container.innerHTML = `
-                        <div class="empty-state" style="grid-column: 1 / -1;">
-                            <div style="font-size: 4rem; margin-bottom: 20px;">🔍</div>
-                            <h3>Filtreye uygun soru bulunamadı</h3>
-                            <p>Farklı filtre seçeneklerini deneyin.</p>
-                        </div>`;
+						                     <div class="empty-state" style="grid-column: 1 / -1;">
+						                         <div style="font-size: 4rem; margin-bottom: 20px;">🔍</div>
+						                         <h3>Filtreye uygun soru bulunamadı</h3>
+						                         <p>Farklı filtre seçeneklerini deneyin.</p>
+						                     </div>`;
 					} else {
 						container.innerHTML = `
-                        <div class="empty-state" style="grid-column: 1 / -1;">
-                            <div style="font-size: 4rem; margin-bottom: 20px;">📚</div>
-                            <h3>Henüz soru eklenmemiş</h3>
-                            <p>Yukarıdaki formu kullanarak ilk sorunuzu ekleyin!</p>
-                        </div>`;
+						                     <div class="empty-state" style="grid-column: 1 / -1;">
+						                         <div style="font-size: 4rem; margin-bottom: 20px;">📚</div>
+						                         <h3>Henüz soru eklenmemiş</h3>
+						                         <p>Yukarıdaki formu kullanarak ilk sorunuzu ekleyin!</p>
+						                     </div>`;
 					}
 					return;
 				}
@@ -679,24 +679,24 @@
 					const toggleButtonText = question.durum === 'Çözüldü' ? '🔄 Durumu Değiştir' : '✅ Çözüldü';
 
 					html += `
-                    <div class="question-card">
-                        <div class="question-status ${statusClass}">${question.durum}</div>
-                        <img src="${question.image}" alt="Soru ${question.id}" class="question-image" onclick="openModal('${question.image}')">
-                        <div class="question-meta">
-                            <span><strong>ID:</strong> ${question.id}</span>
-                            <span><strong>Tarih:</strong> ${question.date}</span>
-                        </div>
-                        <div class="question-tags">
-                            <span class="tag">${question.sinav}</span>
-                            <span class="tag">${question.brans}</span>
-                            <span class="tag">${question.konu}</span>
-                        </div>
-                        ${question.notlar ? `<p style="color: #6c757d; font-size: 0.9rem; margin: 10px 0;"><strong>Not:</strong> ${question.notlar}</p>` : ''}
-                        <div class="question-actions">
-                            <button class="action-btn btn-solve" onclick="toggleStatus(${question.id})">${toggleButtonText}</button>
-                            <button class="action-btn btn-delete" onclick="deleteQuestion(${question.id})">🗑️ Sil</button>
-                        </div>
-                    </div>`;
+						                 <div class="question-card">
+						                     <div class="question-status ${statusClass}">${question.durum}</div>
+						                     <img src="${question.image}" alt="Soru ${question.id}" class="question-image" onclick="openModal('${question.image}')">
+						                     <div class="question-meta">
+						                         <span><strong>ID:</strong> ${question.id}</span>
+						                         <span><strong>Tarih:</strong> ${question.date}</span>
+						                     </div>
+						                     <div class="question-tags">
+						                         <span class="tag">${question.sinav}</span>
+						                         <span class="tag">${question.brans}</span>
+						                         <span class="tag">${question.konu}</span>
+						                     </div>
+						                     ${question.notlar ? `<p style="color: #6c757d; font-size: 0.9rem; margin: 10px 0;"><strong>Not:</strong> ${question.notlar}</p>` : ''}
+						                     <div class="question-actions">
+						                         <button class="action-btn btn-solve" onclick="toggleStatus(${question.id})">${toggleButtonText}</button>
+						                         <button class="action-btn btn-delete" onclick="deleteQuestion(${question.id})">🗑️ Sil</button>
+						                     </div>
+						                 </div>`;
 				});
 
 				container.innerHTML = html;
@@ -825,7 +825,7 @@
 				reader.readAsText(file);
 			}
 
-			// --- Geliştirme 2: Yenilenmiş PDF Fonksiyonu ---
+			// --- GÜNCELLEME: PDF Dosya Boyutunu Düşürme Optimizasyonu ---
 			async function exportToPDF(event) {
 				const sinavFilter = document.getElementById('filter-sinav').value;
 				const bransFilter = document.getElementById('filter-brans').value;
@@ -850,18 +850,15 @@
 				const contentWidth = pageWidth - margin * 2;
 
 				try {
-					// Her bir soruyu tek tek işlemek için döngü
 					for (let i = 0; i < questionsToExport.length; i++) {
 						const q = questionsToExport[i];
 						const progress = Math.round(((i + 1) / questionsToExport.length) * 100);
 						pdfButton.innerHTML = `Oluşturuluyor... (${progress}%)`;
 
-						// Yeni sayfa ekle (ilk sayfa hariç)
 						if (i > 0) {
 							pdf.addPage();
 						}
 
-						// Her soru için geçici bir container oluştur
 						const printCard = document.createElement('div');
 						printCard.id = `pdf-card-${q.id}`;
 						Object.assign(printCard.style, {
@@ -876,45 +873,50 @@
 						});
 
 						const cardHTML = `
-                        <style>
-                            .pdf-card { border: 1px solid #eee; border-radius: 5px; padding: 10px; }
-                            .pdf-meta { font-size: 11px; color: #555; margin-bottom: 8px; display: flex; justify-content: space-between; flex-wrap: wrap; }
-                            .pdf-tags { margin-bottom: 10px; }
-                            .pdf-tag { display: inline-block; background-color: #f0f0f0; padding: 4px 8px; border-radius: 10px; font-size: 10px; margin-right: 5px; margin-bottom: 5px; }
-                            .pdf-img { max-width: 100%; height: auto; border-radius: 5px; margin-bottom: 10px; }
-                            .pdf-notes { font-size: 12px; color: #333; background: #f9f9f9; border-left: 2px solid #667eea; padding: 8px; margin-top: 8px; word-wrap: break-word; }
-                        </style>
-                        <div class="pdf-card">
-                            <div class="pdf-meta">
-                                <span><b>ID:</b> ${q.id} | <b>Tarih:</b> ${q.date}</span>
-                                <span><b>Durum:</b> ${q.durum}</span>
-                            </div>
-                            <div class="pdf-tags">
-                                <span class="pdf-tag">${q.sinav}</span><span class="pdf-tag">${q.brans}</span><span class="pdf-tag">${q.konu}</span>
-                            </div>
-                            <img src="${q.image}" class="pdf-img">
-                            ${q.notlar ? `<div class="pdf-notes"><b>Not:</b> ${q.notlar.replace(/\n/g, '<br>')}</div>` : ''}
-                        </div>`;
+			            <style>
+			                .pdf-card { border: 1px solid #eee; border-radius: 5px; padding: 10px; }
+			                .pdf-meta { font-size: 11px; color: #555; margin-bottom: 8px; display: flex; justify-content: space-between; flex-wrap: wrap; }
+			                .pdf-tags { margin-bottom: 10px; }
+			                .pdf-tag { display: inline-block; background-color: #f0f0f0; padding: 4px 8px; border-radius: 10px; font-size: 10px; margin-right: 5px; margin-bottom: 5px; }
+			                .pdf-img { max-width: 100%; height: auto; border-radius: 5px; margin-bottom: 10px; }
+			                .pdf-notes { font-size: 12px; color: #333; background: #f9f9f9; border-left: 2px solid #667eea; padding: 8px; margin-top: 8px; word-wrap: break-word; }
+			            </style>
+			            <div class="pdf-card">
+			                <div class="pdf-meta">
+			                    <span><b>ID:</b> ${q.id} | <b>Tarih:</b> ${q.date}</span>
+			                    <span><b>Durum:</b> ${q.durum}</span>
+			                </div>
+			                <div class="pdf-tags">
+			                    <span class="pdf-tag">${q.sinav}</span><span class="pdf-tag">${q.brans}</span><span class="pdf-tag">${q.konu}</span>
+			                </div>
+			                <img src="${q.image}" class="pdf-img">
+			                ${q.notlar ? `<div class="pdf-notes"><b>Not:</b> ${q.notlar.replace(/\n/g, '<br>')}</div>` : ''}
+			            </div>`;
 
 						printCard.innerHTML = cardHTML;
 						document.body.appendChild(printCard);
 
-						// Bu tek kartı canvas'a çevir
-						const canvas = await html2canvas(printCard, { scale: 2, useCORS: true });
-						const imgData = canvas.toDataURL('image/png');
+						// DEĞİŞİKLİK 1: Yüksek çözünürlük ölçeğini (scale) kaldırıyoruz.
+						// Bu tek başına dosya boyutunu 4 kat düşürür.
+						const canvas = await html2canvas(printCard, { useCORS: true });
+
+						// DEĞİŞİKLİK 2: Canvas'ı PNG yerine daha verimli olan JPEG'e çeviriyoruz.
+						// 0.7 değeri kaliteyi temsil eder (0 ile 1 arasında). %70 kalite, boyut ve görünüm için iyi bir dengedir.
+						const imgData = canvas.toDataURL('image/jpeg', 0.7);
+
 						const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
-						// Görselin yüksekliği sayfa yüksekliğini aşarsa sığdır
 						const finalHeight = imgHeight > pageHeight - margin * 2 ? pageHeight - margin * 2 : imgHeight;
 
-						pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, finalHeight);
+						// DEĞİŞİKLİK 3: addImage fonksiyonuna formatı ve sıkıştırma türünü belirtiyoruz.
+						// 'FAST' komutu, iyi bir sıkıştırma sağlar.
+						pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, finalHeight, undefined, 'FAST');
 
-						// Geçici container'ı temizle
 						document.body.removeChild(printCard);
 					}
 
 					pdf.save(`soru-defteri-${new Date().toLocaleDateString('tr-TR').replace(/\./g, '-')}.pdf`);
-					alert('PDF başarıyla oluşturuldu ve indirildi! 📄');
+					alert('Optimize edilmiş PDF başarıyla oluşturuldu! 📄');
 				} catch (err) {
 					console.error('PDF oluşturma hatası:', err);
 					alert('PDF oluşturulurken bir hata oluştu. Lütfen konsolu kontrol edin.');
