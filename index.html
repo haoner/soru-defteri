@@ -4,7 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Soru Defteri</title>
-		<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+		<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>" />
 		<!-- PDF Oluşturma Kütüphaneleri -->
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -353,6 +353,7 @@
 				background: #c82333;
 			}
 
+			/* --- GÜNCELLEME: Modal Görsel Sığdırma Düzeltmesi --- */
 			.modal {
 				display: none;
 				position: fixed;
@@ -360,10 +361,12 @@
 				left: 0;
 				width: 100%;
 				height: 100%;
-				background: rgba(0, 0, 0, 0.8);
+				background: rgba(0, 0, 0, 0.85); /* Arka planı hafifçe koyulaştırdık */
 				z-index: 1000;
 				align-items: center;
 				justify-content: center;
+				padding: 20px; /* Ekran kenarlarından güvenli boşluk */
+				box-sizing: border-box; /* Padding'in genişliği etkilememesi için */
 			}
 
 			.modal.show {
@@ -371,22 +374,27 @@
 			}
 
 			.modal-content {
-				max-width: 90%;
-				max-height: 90%;
-				border-radius: 15px;
+				/* Konteynerin maksimum boyutunu ekranın %95'i olarak ayarlar */
+				max-width: 95vw;
+				max-height: 95vh;
 				position: relative;
+				display: flex; /* İçindeki resmi ortalamak için */
+				align-items: center;
+				justify-content: center;
 			}
 
 			.modal-content img {
-				width: 100%;
-				height: auto;
-				border-radius: 15px;
+				/* Bu 4 kural, resmin konteynere sığmasını sağlar */
+				max-width: 100%; /* Resmin genişliği, konteyner genişliğini aşamaz */
+				max-height: 100%; /* Resmin yüksekliği, konteyner yüksekliğini aşamaz */
+				object-fit: contain; /* Resmin en-boy oranını korur ve tamamını gösterir */
+				border-radius: 10px;
 			}
 
 			.modal-close {
 				position: absolute;
-				top: -10px;
-				right: -10px;
+				top: -15px;
+				right: -15px;
 				background: white;
 				border: none;
 				border-radius: 50%;
@@ -395,7 +403,12 @@
 				font-size: 1.5rem;
 				cursor: pointer;
 				color: #333;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 			}
+			/* --- Bitiş: Modal Düzeltmesi --- */
 
 			.empty-state {
 				text-align: center;
@@ -499,12 +512,12 @@
 							<textarea id="notlar" placeholder="Bu soruyla ilgili notlarınız..." rows="3"></textarea>
 						</div>
 					</div>
-					<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+					<div style="display: flex; gap: 10px; flex-wrap: wrap">
 						<button class="add-btn" onclick="addQuestion()" style="flex: 1">➕ Soru Ekle</button>
-						<button class="add-btn" onclick="exportData()" style="background: #28a745; flex-basis: 150px;">📥 Dışa Aktar</button>
+						<button class="add-btn" onclick="exportData()" style="background: #28a745; flex-basis: 150px">📥 Dışa Aktar</button>
 						<input type="file" id="import-file" accept=".json" style="display: none" onchange="importData()" />
-						<button class="add-btn" onclick="document.getElementById('import-file').click()" style="background: #ffc107; color: #333; flex-basis: 150px;">📤 İçe Aktar</button>
-						<button class="add-btn" onclick="exportToPDF()" style="background: #dc3545; flex-basis: 150px;">📄 PDF Aktar</button>
+						<button class="add-btn" onclick="document.getElementById('import-file').click()" style="background: #ffc107; color: #333; flex-basis: 150px">📤 İçe Aktar</button>
+						<button class="add-btn" onclick="exportToPDF(event)" style="background: #dc3545; flex-basis: 150px">📄 PDF Aktar</button>
 					</div>
 				</div>
 
@@ -642,21 +655,21 @@
 				const container = document.getElementById('questions-container');
 
 				if (questionList.length === 0) {
-                    if(questions.length > 0){
-                        container.innerHTML = `
-                        <div class="empty-state">
+					if (questions.length > 0) {
+						container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
                             <div style="font-size: 4rem; margin-bottom: 20px;">🔍</div>
                             <h3>Filtreye uygun soru bulunamadı</h3>
                             <p>Farklı filtre seçeneklerini deneyin.</p>
                         </div>`;
-                    } else {
-                        container.innerHTML = `
-                        <div class="empty-state">
+					} else {
+						container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
                             <div style="font-size: 4rem; margin-bottom: 20px;">📚</div>
                             <h3>Henüz soru eklenmemiş</h3>
                             <p>Yukarıdaki formu kullanarak ilk sorunuzu ekleyin!</p>
                         </div>`;
-                    }
+					}
 					return;
 				}
 
@@ -664,7 +677,7 @@
 				questionList.forEach((question) => {
 					const statusClass = question.durum === 'Beklemede' ? 'status-beklemede' : question.durum === 'Çözüldü' ? 'status-cozuldu' : 'status-yarim';
 					const toggleButtonText = question.durum === 'Çözüldü' ? '🔄 Durumu Değiştir' : '✅ Çözüldü';
-                    
+
 					html += `
                     <div class="question-card">
                         <div class="question-status ${statusClass}">${question.durum}</div>
@@ -698,7 +711,7 @@
 					return (!sinavFilter || q.sinav === sinavFilter) && (!bransFilter || q.brans === bransFilter) && (!durumFilter || q.durum === durumFilter);
 				});
 
-				displayQuestions(filtered);
+				displayQuestions(filtered.sort((a, b) => b.id - a.id));
 			}
 
 			function toggleStatus(id) {
@@ -758,9 +771,9 @@
 
 			function exportData() {
 				if (questions.length === 0) {
-                    alert('Dışa aktarılacak soru bulunmuyor.');
-                    return;
-                }
+					alert('Dışa aktarılacak soru bulunmuyor.');
+					return;
+				}
 				const data = {
 					questions: questions,
 					questionId: questionId,
@@ -795,7 +808,7 @@
 								return;
 							}
 							questions = data.questions;
-							questionId = data.questionId || (questions.length > 0 ? Math.max(...questions.map(q => q.id)) + 1 : 1);
+							questionId = data.questionId || (questions.length > 0 ? Math.max(...questions.map((q) => q.id)) + 1 : 1);
 							saveData();
 							filterQuestions();
 							updateStats();
@@ -806,22 +819,18 @@
 					} catch (error) {
 						alert('Dosya okunamadı. Lütfen geçerli bir yedek dosyası seçin.');
 					} finally {
-                        fileInput.value = '';
-                    }
+						fileInput.value = '';
+					}
 				};
 				reader.readAsText(file);
 			}
 
-			// --- YENİ VE DÜZELTİLMİŞ PDF FONKSİYONU ---
-			function exportToPDF() {
+			// --- Geliştirme 2: Yenilenmiş PDF Fonksiyonu ---
+			async function exportToPDF(event) {
 				const sinavFilter = document.getElementById('filter-sinav').value;
 				const bransFilter = document.getElementById('filter-brans').value;
 				const durumFilter = document.getElementById('filter-durum').value;
-                const questionsToExport = questions.filter((q) => 
-                    (!sinavFilter || q.sinav === sinavFilter) && 
-                    (!bransFilter || q.brans === bransFilter) && 
-                    (!durumFilter || q.durum === durumFilter)
-                );
+				const questionsToExport = questions.filter((q) => (!sinavFilter || q.sinav === sinavFilter) && (!bransFilter || q.brans === bransFilter) && (!durumFilter || q.durum === durumFilter));
 
 				if (questionsToExport.length === 0) {
 					alert('PDF oluşturmak için filtrelenmiş veya eklenmiş soru bulunmuyor.');
@@ -831,85 +840,88 @@
 				const { jsPDF } = window.jspdf;
 				const pdfButton = event.currentTarget;
 				const originalButtonText = pdfButton.innerHTML;
-				pdfButton.innerHTML = 'Oluşturuluyor...';
+				pdfButton.innerHTML = 'Oluşturuluyor... (0%)';
 				pdfButton.disabled = true;
 
-				const printContainer = document.createElement('div');
-				printContainer.id = 'pdf-content';
-				Object.assign(printContainer.style, {
-					position: 'absolute',
-					left: '-9999px',
-					top: '0',
-					width: '210mm',
-					backgroundColor: 'white',
-					padding: '10mm',
-					boxSizing: 'border-box',
-                    fontFamily: 'sans-serif'
-				});
-				
-				let contentHTML = `
-                <style>
-                    .pdf-title { text-align: center; font-size: 20px; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-                    .pdf-card { border: 1px solid #eee; border-radius: 5px; padding: 10px; margin-bottom: 10mm; }
-                    .pdf-img { max-width: 100%; border-radius: 5px; margin-bottom: 10px; }
-                    .pdf-meta { font-size: 11px; color: #555; margin-bottom: 8px; }
-                    .pdf-tag { display: inline-block; background-color: #f0f0f0; padding: 4px 8px; border-radius: 10px; font-size: 10px; margin-right: 5px; }
-                    .pdf-notes { font-size: 12px; color: #333; background: #f9f9f9; border-left: 2px solid #667eea; padding: 8px; margin-top: 8px; word-wrap: break-word; }
-                </style>
-                <h1 class="pdf-title">Soru Defteri Çıktısı (${new Date().toLocaleDateString('tr-TR')})</h1>`;
-				
-				questionsToExport.forEach(q => {
-					contentHTML += `
-					<div class="pdf-card">
-						<div class="pdf-meta"><b>ID:</b> ${q.id} | <b>Tarih:</b> ${q.date} | <b>Durum:</b> ${q.durum}</div>
-						<div><span class="pdf-tag">${q.sinav}</span><span class="pdf-tag">${q.brans}</span><span class="pdf-tag">${q.konu}</span></div>
-						<img src="${q.image}" class="pdf-img">
-						${q.notlar ? `<div class="pdf-notes"><b>Not:</b> ${q.notlar.replace(/\n/g, '<br>')}</div>` : ''}
-					</div>`;
-				});
+				const pdf = new jsPDF('p', 'mm', 'a4');
+				const pageWidth = 210;
+				const pageHeight = 297;
+				const margin = 10;
+				const contentWidth = pageWidth - margin * 2;
 
-				printContainer.innerHTML = contentHTML;
-				document.body.appendChild(printContainer);
+				try {
+					// Her bir soruyu tek tek işlemek için döngü
+					for (let i = 0; i < questionsToExport.length; i++) {
+						const q = questionsToExport[i];
+						const progress = Math.round(((i + 1) / questionsToExport.length) * 100);
+						pdfButton.innerHTML = `Oluşturuluyor... (${progress}%)`;
 
-				html2canvas(printContainer, { scale: 2, useCORS: true, windowWidth: printContainer.scrollWidth, windowHeight: printContainer.scrollHeight }).then(canvas => {
-					// A4 sayfası boyutları (mm cinsinden) ve kenar boşlukları
-					const pageHeight = 297; 
-					const pageWidth = 210;
-					const margin = 10;
-					
-					// Görüntünün PDF'e sığacak yüksekliği ve genişliği
-					const imgWidth = pageWidth - margin * 2;
-					const imgHeight = canvas.height * imgWidth / canvas.width;
-					let heightLeft = imgHeight;
+						// Yeni sayfa ekle (ilk sayfa hariç)
+						if (i > 0) {
+							pdf.addPage();
+						}
 
-					const pdf = new jsPDF('p', 'mm', 'a4');
-					let position = 0;
+						// Her soru için geçici bir container oluştur
+						const printCard = document.createElement('div');
+						printCard.id = `pdf-card-${q.id}`;
+						Object.assign(printCard.style, {
+							position: 'absolute',
+							left: '-9999px',
+							top: '0',
+							width: `${contentWidth}mm`,
+							padding: '10px',
+							boxSizing: 'border-box',
+							fontFamily: 'sans-serif',
+							backgroundColor: 'white',
+						});
 
-					// İlk sayfayı ekle
-					pdf.addImage(canvas, 'PNG', margin, margin, imgWidth, imgHeight);
-					heightLeft -= (pageHeight - margin * 2);
+						const cardHTML = `
+                        <style>
+                            .pdf-card { border: 1px solid #eee; border-radius: 5px; padding: 10px; }
+                            .pdf-meta { font-size: 11px; color: #555; margin-bottom: 8px; display: flex; justify-content: space-between; flex-wrap: wrap; }
+                            .pdf-tags { margin-bottom: 10px; }
+                            .pdf-tag { display: inline-block; background-color: #f0f0f0; padding: 4px 8px; border-radius: 10px; font-size: 10px; margin-right: 5px; margin-bottom: 5px; }
+                            .pdf-img { max-width: 100%; height: auto; border-radius: 5px; margin-bottom: 10px; }
+                            .pdf-notes { font-size: 12px; color: #333; background: #f9f9f9; border-left: 2px solid #667eea; padding: 8px; margin-top: 8px; word-wrap: break-word; }
+                        </style>
+                        <div class="pdf-card">
+                            <div class="pdf-meta">
+                                <span><b>ID:</b> ${q.id} | <b>Tarih:</b> ${q.date}</span>
+                                <span><b>Durum:</b> ${q.durum}</span>
+                            </div>
+                            <div class="pdf-tags">
+                                <span class="pdf-tag">${q.sinav}</span><span class="pdf-tag">${q.brans}</span><span class="pdf-tag">${q.konu}</span>
+                            </div>
+                            <img src="${q.image}" class="pdf-img">
+                            ${q.notlar ? `<div class="pdf-notes"><b>Not:</b> ${q.notlar.replace(/\n/g, '<br>')}</div>` : ''}
+                        </div>`;
 
-					// Gerekliyse yeni sayfalar ekle
-					while (heightLeft > 0) {
-						position = heightLeft - imgHeight;
-						pdf.addPage();
-						pdf.addImage(canvas, 'PNG', margin, position, imgWidth, imgHeight);
-						heightLeft -= (pageHeight - margin * 2);
+						printCard.innerHTML = cardHTML;
+						document.body.appendChild(printCard);
+
+						// Bu tek kartı canvas'a çevir
+						const canvas = await html2canvas(printCard, { scale: 2, useCORS: true });
+						const imgData = canvas.toDataURL('image/png');
+						const imgHeight = (canvas.height * contentWidth) / canvas.width;
+
+						// Görselin yüksekliği sayfa yüksekliğini aşarsa sığdır
+						const finalHeight = imgHeight > pageHeight - margin * 2 ? pageHeight - margin * 2 : imgHeight;
+
+						pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, finalHeight);
+
+						// Geçici container'ı temizle
+						document.body.removeChild(printCard);
 					}
-					
-					pdf.save(`soru-defteri-${new Date().toLocaleDateString('tr-TR').replace(/\./g, '-')}.pdf`);
 
-					document.body.removeChild(printContainer);
-					pdfButton.innerHTML = originalButtonText;
-					pdfButton.disabled = false;
+					pdf.save(`soru-defteri-${new Date().toLocaleDateString('tr-TR').replace(/\./g, '-')}.pdf`);
 					alert('PDF başarıyla oluşturuldu ve indirildi! 📄');
-				}).catch(err => {
-					console.error("PDF oluşturma hatası:", err);
-					alert("PDF oluşturulurken bir hata oluştu. Lütfen konsolu kontrol edin.");
-					document.body.removeChild(printContainer);
+				} catch (err) {
+					console.error('PDF oluşturma hatası:', err);
+					alert('PDF oluşturulurken bir hata oluştu. Lütfen konsolu kontrol edin.');
+				} finally {
 					pdfButton.innerHTML = originalButtonText;
 					pdfButton.disabled = false;
-				});
+				}
 			}
 		</script>
 	</body>
