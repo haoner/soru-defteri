@@ -4,6 +4,9 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Soru Defteri</title>
+		<!-- PDF Oluşturma Kütüphaneleri -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 		<style>
 			* {
 				margin: 0;
@@ -495,11 +498,12 @@
 							<textarea id="notlar" placeholder="Bu soruyla ilgili notlarınız..." rows="3"></textarea>
 						</div>
 					</div>
-					<div style="display: flex; gap: 10px">
+					<div style="display: flex; gap: 10px; flex-wrap: wrap;">
 						<button class="add-btn" onclick="addQuestion()" style="flex: 1">➕ Soru Ekle</button>
-						<button class="add-btn" onclick="exportData()" style="background: #28a745; flex: 0.3">📥 Dışa Aktar</button>
+						<button class="add-btn" onclick="exportData()" style="background: #28a745; flex-basis: 150px;">📥 Dışa Aktar</button>
 						<input type="file" id="import-file" accept=".json" style="display: none" onchange="importData()" />
-						<button class="add-btn" onclick="document.getElementById('import-file').click()" style="background: #ffc107; color: #333; flex: 0.3">📤 İçe Aktar</button>
+						<button class="add-btn" onclick="document.getElementById('import-file').click()" style="background: #ffc107; color: #333; flex-basis: 150px;">📤 İçe Aktar</button>
+						<button class="add-btn" onclick="exportToPDF()" style="background: #dc3545; flex-basis: 150px;">📄 PDF Aktar</button>
 					</div>
 				</div>
 
@@ -561,11 +565,7 @@
 
 				<!-- Sorular -->
 				<div id="questions-container" class="questions-grid">
-					<div class="empty-state">
-						<div style="font-size: 4rem; margin-bottom: 20px">📚</div>
-						<h3>Henüz soru eklenmemiş</h3>
-						<p>Yukarıdaki formu kullanarak ilk sorunuzu ekleyin!</p>
-					</div>
+					<!-- JS ile doldurulacak -->
 				</div>
 			</div>
 		</div>
@@ -618,7 +618,7 @@
 
 					questions.push(question);
 					saveData();
-					displayQuestions();
+					filterQuestions();
 					updateStats();
 					clearForm();
 
@@ -637,24 +637,33 @@
 				document.getElementById('soru-file').value = '';
 			}
 
-			function displayQuestions() {
+			function displayQuestions(questionList) {
 				const container = document.getElementById('questions-container');
 
-				if (questions.length === 0) {
-					container.innerHTML = `
-                    <div class="empty-state">
-                        <div style="font-size: 4rem; margin-bottom: 20px;">📚</div>
-                        <h3>Henüz soru eklenmemiş</h3>
-                        <p>Yukarıdaki formu kullanarak ilk sorunuzu ekleyin!</p>
-                    </div>
-                `;
+				if (questionList.length === 0) {
+                    if(questions.length > 0){
+                        container.innerHTML = `
+                        <div class="empty-state">
+                            <div style="font-size: 4rem; margin-bottom: 20px;">🔍</div>
+                            <h3>Filtreye uygun soru bulunamadı</h3>
+                            <p>Farklı filtre seçeneklerini deneyin.</p>
+                        </div>`;
+                    } else {
+                        container.innerHTML = `
+                        <div class="empty-state">
+                            <div style="font-size: 4rem; margin-bottom: 20px;">📚</div>
+                            <h3>Henüz soru eklenmemiş</h3>
+                            <p>Yukarıdaki formu kullanarak ilk sorunuzu ekleyin!</p>
+                        </div>`;
+                    }
 					return;
 				}
 
 				let html = '';
-				questions.forEach((question) => {
+				questionList.forEach((question) => {
 					const statusClass = question.durum === 'Beklemede' ? 'status-beklemede' : question.durum === 'Çözüldü' ? 'status-cozuldu' : 'status-yarim';
-
+					const toggleButtonText = question.durum === 'Çözüldü' ? '🔄 Durumu Değiştir' : '✅ Çözüldü';
+                    
 					html += `
                     <div class="question-card">
                         <div class="question-status ${statusClass}">${question.durum}</div>
@@ -670,13 +679,10 @@
                         </div>
                         ${question.notlar ? `<p style="color: #6c757d; font-size: 0.9rem; margin: 10px 0;"><strong>Not:</strong> ${question.notlar}</p>` : ''}
                         <div class="question-actions">
-                            <button class="action-btn btn-solve" onclick="toggleStatus(${question.id})">
-                                ${question.durum === 'Çözüldü' ? '🔄 Durumu Değiştir' : '✅ Çözüldü'}
-                            </button>
+                            <button class="action-btn btn-solve" onclick="toggleStatus(${question.id})">${toggleButtonText}</button>
                             <button class="action-btn btn-delete" onclick="deleteQuestion(${question.id})">🗑️ Sil</button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
 				});
 
 				container.innerHTML = html;
@@ -691,62 +697,19 @@
 					return (!sinavFilter || q.sinav === sinavFilter) && (!bransFilter || q.brans === bransFilter) && (!durumFilter || q.durum === durumFilter);
 				});
 
-				const container = document.getElementById('questions-container');
-
-				if (filtered.length === 0) {
-					container.innerHTML = `
-                    <div class="empty-state">
-                        <div style="font-size: 4rem; margin-bottom: 20px;">🔍</div>
-                        <h3>Filtreye uygun soru bulunamadı</h3>
-                        <p>Farklı filtre seçeneklerini deneyin.</p>
-                    </div>
-                `;
-					return;
-				}
-
-				let html = '';
-				filtered.forEach((question) => {
-					const statusClass = question.durum === 'Beklemede' ? 'status-beklemede' : question.durum === 'Çözüldü' ? 'status-cozuldu' : 'status-yarim';
-
-					html += `
-                    <div class="question-card">
-                        <div class="question-status ${statusClass}">${question.durum}</div>
-                        <img src="${question.image}" alt="Soru ${question.id}" class="question-image" onclick="openModal('${question.image}')">
-                        <div class="question-meta">
-                            <span><strong>ID:</strong> ${question.id}</span>
-                            <span><strong>Tarih:</strong> ${question.date}</span>
-                        </div>
-                        <div class="question-tags">
-                            <span class="tag">${question.sinav}</span>
-                            <span class="tag">${question.brans}</span>
-                            <span class="tag">${question.konu}</span>
-                        </div>
-                        ${question.notlar ? `<p style="color: #6c757d; font-size: 0.9rem; margin: 10px 0;"><strong>Not:</strong> ${question.notlar}</p>` : ''}
-                        <div class="question-actions">
-                            <button class="action-btn btn-solve" onclick="toggleStatus(${question.id})">
-                                ${question.durum === 'Çözüldü' ? '🔄 Durumu Değiştir' : '✅ Çözüldü'}
-                            </button>
-                            <button class="action-btn btn-delete" onclick="deleteQuestion(${question.id})">🗑️ Sil</button>
-                        </div>
-                    </div>
-                `;
-				});
-
-				container.innerHTML = html;
+				displayQuestions(filtered);
 			}
 
 			function toggleStatus(id) {
 				const question = questions.find((q) => q.id === id);
 				if (question) {
-					if (question.durum === 'Beklemede') {
-						question.durum = 'Yarım Çözüldü';
-					} else if (question.durum === 'Yarım Çözüldü') {
-						question.durum = 'Çözüldü';
-					} else {
-						question.durum = 'Beklemede';
-					}
+					const statuses = ['Beklemede', 'Yarım Çözüldü', 'Çözüldü'];
+					const currentIndex = statuses.indexOf(question.durum);
+					const nextIndex = (currentIndex + 1) % statuses.length;
+					question.durum = statuses[nextIndex];
+
 					saveData();
-					displayQuestions();
+					filterQuestions();
 					updateStats();
 				}
 			}
@@ -755,7 +718,7 @@
 				if (confirm('Bu soruyu silmek istediğinizden emin misiniz?')) {
 					questions = questions.filter((q) => q.id !== id);
 					saveData();
-					displayQuestions();
+					filterQuestions();
 					updateStats();
 				}
 			}
@@ -770,15 +733,10 @@
 			}
 
 			function updateStats() {
-				const total = questions.length;
-				const pending = questions.filter((q) => q.durum === 'Beklemede').length;
-				const solved = questions.filter((q) => q.durum === 'Çözüldü').length;
-				const partial = questions.filter((q) => q.durum === 'Yarım Çözüldü').length;
-
-				document.getElementById('total-questions').textContent = total;
-				document.getElementById('pending-questions').textContent = pending;
-				document.getElementById('solved-questions').textContent = solved;
-				document.getElementById('partial-questions').textContent = partial;
+				document.getElementById('total-questions').textContent = questions.length;
+				document.getElementById('pending-questions').textContent = questions.filter((q) => q.durum === 'Beklemede').length;
+				document.getElementById('solved-questions').textContent = questions.filter((q) => q.durum === 'Çözüldü').length;
+				document.getElementById('partial-questions').textContent = questions.filter((q) => q.durum === 'Yarım Çözüldü').length;
 			}
 
 			function saveData() {
@@ -786,13 +744,11 @@
 				localStorage.setItem('yksQuestionId', questionId.toString());
 			}
 
-			// Sayfa yüklendiğinde
 			document.addEventListener('DOMContentLoaded', function () {
-				displayQuestions();
+				filterQuestions();
 				updateStats();
 			});
 
-			// ESC tuşu ile modal kapatma
 			document.addEventListener('keydown', function (e) {
 				if (e.key === 'Escape') {
 					closeModal();
@@ -800,6 +756,10 @@
 			});
 
 			function exportData() {
+				if (questions.length === 0) {
+                    alert('Dışa aktarılacak soru bulunmuyor.');
+                    return;
+                }
 				const data = {
 					questions: questions,
 					questionId: questionId,
@@ -811,47 +771,144 @@
 				const url = URL.createObjectURL(blob);
 				const a = document.createElement('a');
 				a.href = url;
-				a.download = `yks-hata-defteri-yedek-${new Date().toLocaleDateString('tr-TR').replace(/\./g, '-')}.json`;
+				a.download = `soru-defteri-yedek-${new Date().toLocaleDateString('tr-TR').replace(/\./g, '-')}.json`;
 				document.body.appendChild(a);
 				a.click();
 				document.body.removeChild(a);
 				URL.revokeObjectURL(url);
-
 				alert('Verileriniz başarıyla dışa aktarıldı! 💾');
 			}
 
 			function importData() {
-				const file = document.getElementById('import-file').files[0];
+				const fileInput = document.getElementById('import-file');
+				const file = fileInput.files[0];
 				if (!file) return;
 
 				const reader = new FileReader();
 				reader.onload = function (e) {
 					try {
 						const data = JSON.parse(e.target.result);
-
 						if (data.questions && Array.isArray(data.questions)) {
-							if (questions.length > 0) {
-								if (!confirm('Mevcut verileriniz silinecek. Devam etmek istediğinizden emin misiniz?')) {
-									return;
-								}
+							if (questions.length > 0 && !confirm('Mevcut verileriniz silinecek. Devam etmek istediğinizden emin misiniz?')) {
+								fileInput.value = '';
+								return;
 							}
-
 							questions = data.questions;
-							questionId = data.questionId || questions.length + 1;
-
+							questionId = data.questionId || (questions.length > 0 ? Math.max(...questions.map(q => q.id)) + 1 : 1);
 							saveData();
-							displayQuestions();
+							filterQuestions();
 							updateStats();
-
 							alert(`${questions.length} soru başarıyla içe aktarıldı! 🎉`);
 						} else {
 							alert('Geçersiz dosya formatı!');
 						}
 					} catch (error) {
 						alert('Dosya okunamadı. Lütfen geçerli bir yedek dosyası seçin.');
-					}
+					} finally {
+                        fileInput.value = '';
+                    }
 				};
 				reader.readAsText(file);
+			}
+
+			// --- YENİ VE DÜZELTİLMİŞ PDF FONKSİYONU ---
+			function exportToPDF() {
+				const sinavFilter = document.getElementById('filter-sinav').value;
+				const bransFilter = document.getElementById('filter-brans').value;
+				const durumFilter = document.getElementById('filter-durum').value;
+                const questionsToExport = questions.filter((q) => 
+                    (!sinavFilter || q.sinav === sinavFilter) && 
+                    (!bransFilter || q.brans === bransFilter) && 
+                    (!durumFilter || q.durum === durumFilter)
+                );
+
+				if (questionsToExport.length === 0) {
+					alert('PDF oluşturmak için filtrelenmiş veya eklenmiş soru bulunmuyor.');
+					return;
+				}
+
+				const { jsPDF } = window.jspdf;
+				const pdfButton = event.currentTarget;
+				const originalButtonText = pdfButton.innerHTML;
+				pdfButton.innerHTML = 'Oluşturuluyor...';
+				pdfButton.disabled = true;
+
+				const printContainer = document.createElement('div');
+				printContainer.id = 'pdf-content';
+				Object.assign(printContainer.style, {
+					position: 'absolute',
+					left: '-9999px',
+					top: '0',
+					width: '210mm',
+					backgroundColor: 'white',
+					padding: '10mm',
+					boxSizing: 'border-box',
+                    fontFamily: 'sans-serif'
+				});
+				
+				let contentHTML = `
+                <style>
+                    .pdf-title { text-align: center; font-size: 20px; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+                    .pdf-card { border: 1px solid #eee; border-radius: 5px; padding: 10px; margin-bottom: 10mm; }
+                    .pdf-img { max-width: 100%; border-radius: 5px; margin-bottom: 10px; }
+                    .pdf-meta { font-size: 11px; color: #555; margin-bottom: 8px; }
+                    .pdf-tag { display: inline-block; background-color: #f0f0f0; padding: 4px 8px; border-radius: 10px; font-size: 10px; margin-right: 5px; }
+                    .pdf-notes { font-size: 12px; color: #333; background: #f9f9f9; border-left: 2px solid #667eea; padding: 8px; margin-top: 8px; word-wrap: break-word; }
+                </style>
+                <h1 class="pdf-title">Soru Defteri Çıktısı (${new Date().toLocaleDateString('tr-TR')})</h1>`;
+				
+				questionsToExport.forEach(q => {
+					contentHTML += `
+					<div class="pdf-card">
+						<div class="pdf-meta"><b>ID:</b> ${q.id} | <b>Tarih:</b> ${q.date} | <b>Durum:</b> ${q.durum}</div>
+						<div><span class="pdf-tag">${q.sinav}</span><span class="pdf-tag">${q.brans}</span><span class="pdf-tag">${q.konu}</span></div>
+						<img src="${q.image}" class="pdf-img">
+						${q.notlar ? `<div class="pdf-notes"><b>Not:</b> ${q.notlar.replace(/\n/g, '<br>')}</div>` : ''}
+					</div>`;
+				});
+
+				printContainer.innerHTML = contentHTML;
+				document.body.appendChild(printContainer);
+
+				html2canvas(printContainer, { scale: 2, useCORS: true, windowWidth: printContainer.scrollWidth, windowHeight: printContainer.scrollHeight }).then(canvas => {
+					// A4 sayfası boyutları (mm cinsinden) ve kenar boşlukları
+					const pageHeight = 297; 
+					const pageWidth = 210;
+					const margin = 10;
+					
+					// Görüntünün PDF'e sığacak yüksekliği ve genişliği
+					const imgWidth = pageWidth - margin * 2;
+					const imgHeight = canvas.height * imgWidth / canvas.width;
+					let heightLeft = imgHeight;
+
+					const pdf = new jsPDF('p', 'mm', 'a4');
+					let position = 0;
+
+					// İlk sayfayı ekle
+					pdf.addImage(canvas, 'PNG', margin, margin, imgWidth, imgHeight);
+					heightLeft -= (pageHeight - margin * 2);
+
+					// Gerekliyse yeni sayfalar ekle
+					while (heightLeft > 0) {
+						position = heightLeft - imgHeight;
+						pdf.addPage();
+						pdf.addImage(canvas, 'PNG', margin, position, imgWidth, imgHeight);
+						heightLeft -= (pageHeight - margin * 2);
+					}
+					
+					pdf.save(`soru-defteri-${new Date().toLocaleDateString('tr-TR').replace(/\./g, '-')}.pdf`);
+
+					document.body.removeChild(printContainer);
+					pdfButton.innerHTML = originalButtonText;
+					pdfButton.disabled = false;
+					alert('PDF başarıyla oluşturuldu ve indirildi! 📄');
+				}).catch(err => {
+					console.error("PDF oluşturma hatası:", err);
+					alert("PDF oluşturulurken bir hata oluştu. Lütfen konsolu kontrol edin.");
+					document.body.removeChild(printContainer);
+					pdfButton.innerHTML = originalButtonText;
+					pdfButton.disabled = false;
+				});
 			}
 		</script>
 	</body>
