@@ -45,7 +45,7 @@ Bu proje doğrudan tarayıcıda çalışır, kurulum gerektirmez.
 2. Tarayıcınızda açın
 
 ### Online Kullanım  
-[soru-defteri.github.io](https://username.github.io/soru-defteri) adresinden erişebilirsiniz.
+[haoner.github.io/soru-defteri](https://haoner.github.io/soru-defteri) adresinden erişebilirsiniz.
 
 ## 📝 Kullanım İpuçları
 
